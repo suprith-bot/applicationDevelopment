@@ -1,0 +1,23 @@
+{
+  "name": "milestone5",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.699.0",
+    "@aws-sdk/credential-provider-node": "^3.699.0",
+    "@aws-sdk/util-dynamodb": "^3.704.0",
+    "@opensearch-project/opensearch": "^2.13.0",
+    "aws-opensearch-connector": "^1.2.0",
+    "aws-sdk": "^2.1692.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "serverless-offline": "^14.3.4"
+  }
+}

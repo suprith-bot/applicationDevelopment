@@ -1,0 +1,64 @@
+{
+    "ProductsTable-dev": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "Category": {"S": "Electronics"},
+                    "ProductID": {"S": "E001"},
+                    "Name": {"S": "Wireless Bluetooth Earbuds"},
+                    "Subcategory": {"S": "Audio"},
+                    "Price": {"N": "49.99"},
+                    "Keywords": {"SS": ["Bluetooth", "Earbuds", "Wireless", "Audio"]}
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "Category": {"S": "Electronics"},
+                    "ProductID": {"S": "E002"},
+                    "Name": {"S": "Smartphone"},
+                    "Subcategory": {"S": "Mobile"},
+                    "Price": {"N": "699.99"},
+                    "Keywords": {"SS": ["Phone", "Smart", "Mobile", "Gadget"]}
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "Category": {"S": "Clothing"},
+                    "ProductID": {"S": "C001"},
+                    "Name": {"S": "Men's Casual Shirt"},
+                    "Subcategory": {"S": "Shirts"},
+                    "Price": {"N": "29.99"},
+                    "Keywords": {"SS": ["Clothing", "Shirt", "Casual", "Men"]}
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "Category": {"S": "Clothing"},
+                    "ProductID": {"S": "C002"},
+                    "Name": {"S": "Women's Running Shoes"},
+                    "Subcategory": {"S": "Footwear"},
+                    "Price": {"N": "59.99"},
+                    "Keywords": {"SS": ["Shoes", "Running", "Footwear", "Women"]}
+                }
+            }
+        },
+        {
+            "PutRequest": {
+                "Item": {
+                    "Category": {"S": "Home"},
+                    "ProductID": {"S": "H001"},
+                    "Name": {"S": "Stainless Steel Water Bottle"},
+                    "Subcategory": {"S": "Kitchen"},
+                    "Price": {"N": "15.99"},
+                    "Keywords": {"SS": ["Bottle", "Water", "Steel", "Home"]}
+                }
+            }
+        }
+    ]
+}

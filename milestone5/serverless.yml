@@ -1,0 +1,233 @@
+
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: shopping
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  environment:
+    PRODUCTS_TABLE: ProductsTable-${sls:stage}
+    DYNAMODB_TABLE: UserTable-${sls:stage}
+    CART_TABLE: CartTable-${sls:stage}
+    OPEN_SEARCH_DOMAIN: product-search-${sls:stage}
+    ORDER_TABLE: OrderTable-${sls:stage}
+    OPENSEARCH_ENDPOINT: 
+      Fn::GetAtt: [OpenSearchDomain, DomainEndpoint]
+    PASSWORD_SSM: password
+    USERNAME_SSM: username
+    
+    
+
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:Query
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            
+          Resource: 
+            - arn:aws:dynamodb:us-east-1:*:table/ProductsTable-${sls:stage}
+            - arn:aws:dynamodb:us-east-1:*:table/UserTable-${sls:stage}
+            - arn:aws:dynamodb:us-east-1:*:table/CartTable-${sls:stage}
+            - arn:aws:dynamodb:us-east-1:*:table/OrderTable-${sls:stage}
+            - arn:aws:dynamodb:us-east-1:*:table/OrderTable-${sls:stage}/index/UserIDIndex
+        - Effect: Allow
+          Action:
+          - dynamodb:GetRecords
+          - dynamodb:GetShardIterator
+          - dynamodb:DescribeStream
+          - dynamodb:ListStreams
+          Resource: 
+          - !GetAtt ProductsTable.StreamArn
+        - Effect: "Allow"
+          Action:
+            - "es:ESHttpPost"
+            - "es:ESHttpPut"
+            - "es:ESHttpGet"
+            - "es:ESHttpDelete"
+            - "ssm:GetParameter"
+          Resource:
+            - arn:aws:es:us-east-1:*:domain/product-search-${sls:stage}/*
+            - arn:aws:ssm:us-east-1:*:parameter/password
+            - arn:aws:ssm:us-east-1:*:parameter/username
+           
+
+functions:
+  createUser:
+    handler: src/handlers/userHandler.createUser
+    events:
+      - http:
+          path: /api/register
+          method: post
+  getUser:
+    handler: src/handlers/userHandler.getUser
+    events:
+      - http:
+          path: /api/profile/{userId}
+          method: get
+  updateUser:
+    handler: src/handlers/userHandler.updateUser
+    events:
+      - http:
+          path: /api/profile
+          method: put
+  addToCart:
+    handler: src/handlers/cartHandler.addToCart
+    events:
+      - http:
+          path: /api/cart
+          method: post
+
+  deleteFromCart:
+    handler: src/handlers/cartHandler.deleteFromCart
+    events:
+      - http:
+          path: /api/cart
+          method: delete
+  checkoutApi:
+    handler: src/handlers/checkoutHandler.checkout
+    events:
+      - http:
+          path: /api/checkout
+          method: post
+  orderTrack:
+    handler: src/handlers/checkoutHandler.orderTrack
+    events:
+      - http:
+          path: /api/orders/{orderId}/status
+          method: get
+  orderHistory:
+    handler: src/handlers/checkoutHandler.orderHistory
+    events:
+      - http:
+          path: /api/orders
+          method: get
+          
+  productSearch:
+    handler: src/handlers/productHandler.searchProducts
+    events:
+      - http:
+          path: /api/products
+          method: get
+
+  syncDynamoToOpenSearch:
+    handler: src/handlers/syncHandler.syncDynamoToOpenSearch
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - ProductsTable
+              - StreamArn
+      
+resources:
+  Resources:
+    OpenSearchDomain:
+      Type: AWS::OpenSearchService::Domain
+      Properties:
+        DomainName: product-search-${sls:stage}
+        EngineVersion: "OpenSearch_2.7"
+        NodeToNodeEncryptionOptions:
+          Enabled: true
+        EncryptionAtRestOptions:
+          Enabled: true
+        DomainEndpointOptions:
+          EnforceHTTPS: true
+          TLSSecurityPolicy: Policy-Min-TLS-1-2-2019-07
+        ClusterConfig:
+          InstanceType: "t3.small.search"
+          InstanceCount: 1
+          DedicatedMasterEnabled: false
+        EBSOptions:
+          EBSEnabled: true
+          VolumeSize: 10
+          VolumeType: "gp2"
+        AccessPolicies:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal: "*"
+              Action:
+                - "es:ESHttpPut"
+                - "es:ESHttpPost"
+                - "es:ESHttpGet"
+                - "es:ESHttpDelete"
+              Resource: !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/product-search-${sls:stage}/*"
+             
+        AdvancedSecurityOptions:
+          Enabled: true
+          InternalUserDatabaseEnabled: true
+          MasterUserOptions:
+            MasterUserName: ${ssm:username}
+            MasterUserPassword: ${ssm:password}
+
+
+    ProductsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ProductsTable-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: ProductID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ProductID
+            KeyType: HASH
+        StreamSpecification:
+          StreamViewType: "NEW_AND_OLD_IMAGES" 
+        BillingMode: PAY_PER_REQUEST
+    UserTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: UserTable-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    OrderTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: OrderTable-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: OrderId
+            AttributeType: S
+          - AttributeName: UserId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: OrderId
+            KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: UserIDIndex
+            KeySchema:
+              - AttributeName: UserId
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+        BillingMode: PAY_PER_REQUEST
+
+    CartTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: CartTable-${sls:stage}
+        AttributeDefinitions:
+          - AttributeName: UserId
+            AttributeType: S
+          - AttributeName: ProductId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: UserId
+            KeyType: HASH
+          - AttributeName: ProductId
+            KeyType: RANGE
+        BillingMode: PAY_PER_REQUEST
+plugins:
+  - serverless-offline
