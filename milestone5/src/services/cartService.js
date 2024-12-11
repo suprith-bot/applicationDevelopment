@@ -20,8 +20,8 @@ module.exports.createCart=async(cartData)=>{
     return { newCart };
 
 }
-module.exports.deleteCart=async(cartData)=>{
-    const{userId,productId}=cartData;
+module.exports.deleteCart=async(userId,productId)=>{
+   
     if(!userId || !productId){
         throw { statusCode: 400, message: 'UserId and ProductId are required' };
     }
@@ -32,6 +32,6 @@ module.exports.deleteCart=async(cartData)=>{
         throw { statusCode: 404, message: 'Cart not found' };
     }
     await dynamoHelper.deleteItem(TABLE_NAME,key);
-    return { message: 'Cart deleted successfully' };
+    return;
 
 }

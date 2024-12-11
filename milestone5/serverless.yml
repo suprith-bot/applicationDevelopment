@@ -66,49 +66,57 @@ functions:
       - http:
           path: /api/register
           method: post
+          cors: true
   getUser:
     handler: src/handlers/userHandler.getUser
     events:
       - http:
           path: /api/profile/{userId}
           method: get
+          cors: true
   updateUser:
     handler: src/handlers/userHandler.updateUser
     events:
       - http:
           path: /api/profile
           method: put
+          cors: true
   addToCart:
     handler: src/handlers/cartHandler.addToCart
     events:
       - http:
           path: /api/cart
           method: post
+          cors: true
 
   deleteFromCart:
     handler: src/handlers/cartHandler.deleteFromCart
     events:
       - http:
-          path: /api/cart
+          path: /api/cart/{userId}/products/{productId}
           method: delete
+          cors: true
   checkoutApi:
     handler: src/handlers/checkoutHandler.checkout
     events:
       - http:
           path: /api/checkout
           method: post
+          cors: true
   orderTrack:
     handler: src/handlers/checkoutHandler.orderTrack
     events:
       - http:
           path: /api/orders/{orderId}/status
           method: get
+          cors: true
   orderHistory:
     handler: src/handlers/checkoutHandler.orderHistory
     events:
       - http:
           path: /api/orders
           method: get
+          cors: true
           
   productSearch:
     handler: src/handlers/productHandler.searchProducts
@@ -116,6 +124,7 @@ functions:
       - http:
           path: /api/products
           method: get
+          cors: true
 
   syncDynamoToOpenSearch:
     handler: src/handlers/syncHandler.syncDynamoToOpenSearch

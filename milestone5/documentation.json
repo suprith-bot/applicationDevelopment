@@ -1,0 +1,779 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Products Management",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://qaba5erq76.execute-api.us-east-1.amazonaws.com/dev/api"
+    }
+  ],
+  "tags": [
+    {
+      "name": "user",
+      "description": "Operations related to user management"
+    }
+  ],
+  "paths": {
+    "/register": {
+      "post": {
+        "tags": ["user"],
+        "summary": "Register new user",
+        "description": "Register a new user in the system",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "message": "User created successfully",
+                    "userId": "gsvd57ycgdgjchjd"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "message": "Invalid input"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "message": "Internal server error"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile":{
+        "put":{"tags":["user"],
+    "summary":"update user profile",
+    "requestBody":{
+        "content":{
+        "application/json":{
+            "schema":{
+                "type":"object",
+                "properties":{
+                    "UserId":{"type":"string"},
+                    "Name":{"type":"string"},
+                    "Email":{"type":"string"},
+                    "Address":{"type":"string"}
+                },"example":{
+                    "UserId":"jhsdgdf6wi28wter4",
+                    "Name":"ahmed",
+                    "Email":"ahmed@gmail.com",
+                    "Address":"cairo"
+                }
+            }
+            
+
+    }}}
+,"responses":{
+    "204":{
+        "description":"successfully updated"
+    }
+    ,"404":{
+        "description":"user not found",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"user not found"
+                    }
+                }
+            }
+        }
+    },
+    "400":{
+        "description":"Invalid input",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Invalid input"
+                    }
+                }
+            }
+        }
+    },
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+    }}
+    }},
+    "/profile/{userId}":{
+        "get":{"tags":["user"],
+    "summary":"get user profile",
+    "parameters":[{"in":"path","name":"userId","required":true,"schema":{"type":"string"}}],
+    "responses":{
+        "200":{
+            "description":"successfully retrieved",
+            "content":{
+                "application/json":{
+                    "schema":{
+                        "type":"object",
+                        "properties":{
+                            "name":{"type":"string"},
+                            "email":{"type":"string"},
+                            "shippingAddress":{"type":"string"}
+                        },
+                        "example":{
+                            "name":"ahmed",
+                            "email":"ahmed@gmail.com",
+                            "shippingAddress":"cairo"
+                        }
+                    }
+                }
+            }
+        },
+        "404":{
+            "description":"user not found",
+            "content":{
+                "application/json":{
+                    "schema":{
+                        "type":"object",
+                        "properties":{
+                            "message":{"type":"string"}
+                        },
+                        "example":{
+                            "message":"user not found"
+                        }
+                    }
+                }
+            }
+        },
+        "500":{
+            "description":"Internal server error",
+            "content":{
+                "application/json":{
+                    "schema":{
+                        "type":"object",
+                        "properties":{
+                            "message":{"type":"string"}
+                        },
+                        "example":{
+                            "message":"Internal server error"
+                        }
+                    }
+                }
+            }
+        }
+    }}},
+    "/cart":{
+        "post":{"tags":["cart"],
+    "summary":"add product to cart",
+    "requestBody":{
+        "content":{
+        "application/json":{
+            "schema":{
+                "type":"object",
+                "properties":{
+                    "userId":{"type":"string"},
+                    "productId":{"type":"string"},
+                    "quantity":{"type":"integer"}
+                },"example":{
+                    "userId":"hdsg78847yfyg54f7ti4",
+                    "productId":"ewew32t7gdk784e4ffff",
+                    "quantity":1
+                }
+            }
+            
+
+    }}}
+,"responses":{
+   
+    "201":{
+        "description":"cart created",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"cart added successfully"
+                    }
+                }
+            }
+        }
+    },
+    "400":{
+        "description":"Invalid input",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Invalid input"
+                    }
+                }
+            }
+        }
+    },
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+    }}
+    }
+},
+"/cart/{userId}/products/{productId}":{"delete":{"tags":["cart"],
+    "summary":"delete product from cart",
+    "parameters": [
+            {
+                "in": "path",
+                "name": "userId",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            {
+                "in": "path",
+                "name": "productId",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            }
+        ],"responses":{
+   
+    "204":{
+        "description":"successfully deleted"
+    },
+    "404":{
+        "description":"cart not found",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"cart not found"
+                    }
+                }
+            }
+        }
+    },
+    "400":{
+        "description":"Invalid input",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Invalid input"
+                    }
+                }
+            }
+        }
+    },
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+}}}},"/checkout":{
+    "post":{"tags":["orders"],
+    "summary":"checkout",
+    "requestBody":{
+        "content":{
+        "application/json":{
+            "schema":{
+                "type":"object",
+                "properties":{
+                    "UserID":{"type":"string"},
+                    "ShippingAddress":{"type":"string"},
+                    "PaymentMethod":{"type":"string"},
+                    "CartItems":{
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "productId": {
+                              "type": "string"
+                            },
+                            "quantity": {
+                              "type": "integer",
+                              "minimum": 1
+                            }
+                          },"required":["productId","quantity"]
+                }}},
+                "required":["UserID","CartItems"]
+                ,"example":{
+                    "UserID":"hfr74y745f8g7g4f",
+                    "shippingAddress":"cairo",
+                    "PaymentMethod":"cash",
+                    "CartItems":[
+                        {
+                            "productId":"hfhut4t4tt46t4k86at4",
+                            "quantity":1
+                        }
+                    ]
+
+                }
+            }
+            
+
+    }}}
+,"responses":{
+   
+    "201":{
+        "description":"checkout created",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"},
+                        "orderId":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"checkout created successfully",
+                        "orderId":"ewyc363t4r63ttW67GJ7G"
+                    }
+                }
+            }
+        }
+    },
+    "400":{
+        "description":"Invalid input",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message": "UserID, ShippingAddress, PaymentMethod and CartItems are required"
+                    }
+                }
+            }
+        }
+    },
+    "404":{"description":"Invalid input",
+"content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"product not found"
+                    }
+                }
+            }
+        }},
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+    }}
+    }
+  },
+"/orders/{orderId}/status":{
+    "put":{"tags":["orders"],
+    "summary":"update order status",
+    "parameters":[{"in":"path","name":"orderId","required":true,"schema":{"type":"string"}}],
+    "requestBody":{
+        "content":{
+        "application/json":{
+            "schema":{
+                "type":"object",
+                "properties":{
+                    "status":{"type":"string"}
+                },"example":{
+                    "status":"shipped"
+                }
+            }
+            
+
+    }}}
+,"responses":{
+   
+    "200":{
+        "description":"successfully updated",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"},
+                        "order":{"type":"object"
+                        ,"properties":{"orderId":{"type":"string"},
+                            "userId":{"type":"string"},
+                            "shippingAddress":{"type":"string"},
+                            "paymentMethod":{"type":"string"},
+                            "cartItems":{"type":"array","items":{
+                                "type":"object",
+                                "properties":{
+                                    "productId":{"type":"string"},
+                                    "quantity":{"type":"integer"}
+                                }
+                            }},
+                            "totalPrice":{"type":"number"},
+                            "orderStatus":{"type":"string"}
+                        }}
+                    },
+                    "example":{
+                        "message":"order status updated successfully",
+                        "order":{"orderId":"ewyc363t4r63ttW67GJ7G","userId":"gsvd57ycgdgjchjd",
+                        "shippingAddress":"cairo","paymentMethod":"cash",
+                        "cartItems":[{"productId":"nryvug57gebrbgb4t","quantity":1}],
+                        "totalPrice":100,"orderStatus":"shipped"}
+                        
+                    }
+                }
+            }
+        }
+    },
+    "404":{
+        "description":"order not found",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"order not found"
+                    }
+                }
+            }
+        }
+    },
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+    }}}
+},
+"/orders":{
+    "get":{"tags":["orders"],
+    "summary":"get all orders",
+    "parameters":[{"in":"query","name":"userId","required":true,"schema":{"type":"string"}}],
+    "responses":{
+   
+    "200":{
+        "description":"successfully retrieved",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"},
+                        "orders":{"type":"array","items":{
+                            "type":"object",
+                            "properties":{
+                                "orderId":{"type":"string"},
+                                "userId":{"type":"string"},
+                                "shippingAddress":{"type":"string"},
+                                "paymentMethod":{"type":"string"},
+                                "cartItems":{"type":"array","items":{
+                                    "type":"object",
+                                    "properties":{
+                                        "productId":{"type":"string"},
+                                        "quantity":{"type":"integer"}
+                                    }
+                                }},
+                                "totalPrice":{"type":"number"},
+                                "orderStatus":{"type":"string"}
+                            }
+                        }}
+                    },
+                    "example":{
+                        "message":"orders retrieved successfully",
+                        "orders":[{"orderId":"XXXXXXXXXXXXXXXXXXXXX","userId":"XXXXXXXXXXXXXXXX",
+                        "shippingAddress":"cairo","paymentMethod":"cash",
+                        "cartItems":[{"productId":"XXXXXXXXXXXXXXXXX","quantity":1}],
+                        "totalPrice":100,"orderStatus":"shipped"}]
+                        
+                    }
+                }
+            }
+        }
+    },"404":{"description":"user not found",
+    "content":{
+        "application/json":{
+            "schema":{
+                "type":"object",
+                "properties":{
+                    "message":{"type":"string"}
+                },
+                "example":{
+                    "message":"user not found"
+                }
+            }
+        }
+    }},
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+    }}}
+},
+"/products":{
+    "get":{"tags":["products"],
+    "summary":"get all products",
+    "parameters":[ {
+        "in": "query",
+        "name": "Keywords",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Search keywords for product name, description, or tags"
+      },
+      {
+        "in": "query",
+        "name": "Category",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter by product category"
+      },
+      {
+        "in": "query",
+        "name": "Subcategory",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Filter by product subcategory"
+      },
+      {
+        "in": "query",
+        "name": "MinPrice",
+        "required": false,
+        "schema": {
+          "type": "number",
+          "format": "float"
+        },
+        "description": "Minimum price filter"
+      },
+      {
+        "in": "query",
+        "name": "MaxPrice",
+        "required": false,
+        "schema": {
+          "type": "number",
+          "format": "float"
+        },
+        "description": "Maximum price filter"
+      }],
+    "responses":{
+   
+    "200":{
+        "description":"successfully retrieved",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"},
+                        "products":{"type":"array","items":{
+                            "type":"object",
+                            "properties":{
+                                "productId":{"type":"string"},
+                                "name":{"type":"string"},
+                                "description":{"type":"string"},
+                                "price":{"type":"number"},
+                                "category":{"type":"string"},
+                                "image":{"type":"string"},
+                                "stockQuantity":{"type":"integer"}
+                            }
+                        }}
+                    },
+                    "example":{
+                        "message":"products retrieved successfully",
+                        "products":[{"productId":"XXXXXXXXXXXXXXXXXXXXX","name":"XXXXXXXXXXXXXXXX",
+                        "description":"XXXXXXXXXXXXXXXX","price":100,"category":"XXXXXXXXXXXXXXXX",
+                        "image":"XXXXXXXXXXXXXXXX","stockQuantity":1}]
+                        
+                    }
+                }
+            }
+        }
+    },
+    "500":{
+        "description":"Internal server error",
+        "content":{
+            "application/json":{
+                "schema":{
+                    "type":"object",
+                    "properties":{
+                        "message":{"type":"string"}
+                    },
+                    "example":{
+                        "message":"Internal server error"
+                    }
+                }
+            }
+        }
+    }}}
+}},
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "shippingAddress": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "email", "password", "shippingAddress"],
+        "example": {
+          "name": "ahmed",
+          "email": "ahmed@gmail.com",
+          "password": "123456",
+          "shippingAddress": "cairo"
+        }
+      }
+    }
+  }
+}

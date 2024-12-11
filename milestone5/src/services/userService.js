@@ -11,6 +11,7 @@ module.exports.createUser=async(userData)=>{
     if(!validation.isValidEmail(email)){
         throw { statusCode: 400, message: 'Invalid Email' };
     }
+    
     const userId = `${uuidv4()}`;
    
     const newUser = {
@@ -19,6 +20,7 @@ module.exports.createUser=async(userData)=>{
         Email: email,
         Password: password,
         Address: shippingAddress
+        
       };
       console.log(TABLE_NAME);
       await dynamoHelper.putItem(TABLE_NAME, newUser);

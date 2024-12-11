@@ -8,7 +8,7 @@ module.exports.addToCart=async(event)=>{
     
     return{
         statusCode:201,
-        body:JSON.stringify({ message: 'cart added successfully', cart: response.newCart })
+        body:JSON.stringify({ message: 'cart added successfully' })
     }}
     catch(err){
        console.log(err);
@@ -21,13 +21,14 @@ module.exports.addToCart=async(event)=>{
 }}
 module.exports.deleteFromCart=async(event)=>{
     try{
-        const body=JSON.parse(event.body);
+        const userId=await event.pathParameters.userId;
+        const productId=await event.pathParameters.productId;
 
-        const response=await cartService.deleteCart(body);
+    await cartService.deleteCart(userId,productId);
 
 
     return{
-        statusCode:201,
+        statusCode:204,
         body:JSON.stringify({ message: 'cart deleted successfully' })
     }}
     catch(err){
