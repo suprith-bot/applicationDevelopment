@@ -1,0 +1,72 @@
+service: websocket-service
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  stage: dev
+  environment:
+    CONNECTIONS_TABLE: websocket-connections   
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:PutItem
+        - dynamodb:GetItem
+        - dynamodb:DeleteItem
+        - dynamodb:Scan
+      Resource: !GetAtt ConnectionsTable.Arn
+    - Effect: Allow
+      Action:
+        - execute-api:ManageConnections
+      Resource: 
+        - !Sub "arn:aws:execute-api:${aws:region}:${aws:accountId}:${WebSocketApi}/*"
+
+functions:
+  connect:
+    handler: handler.connect
+    events:
+      - websocket:
+          route: $connect
+
+  disconnect:
+    handler: handler.disconnect
+    events:
+      - websocket:
+          route: $disconnect
+
+  default:
+    handler: handler.default
+    events:
+      - websocket:
+          route: $default
+
+  sendMessage:
+    handler: handler.sendMessage
+    events:
+      - websocket:
+          route: sendMessage
+  sendAllMessage:
+    handler: handler.sendAllMessage
+    events:
+      - websocket:
+          route: sendAllMessage
+
+resources:
+  Resources:
+    WebSocketApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Name: WebSocketApi
+        ProtocolType: WEBSOCKET
+        RouteSelectionExpression: "$request.body.action"
+    ConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: websocket-connections
+        AttributeDefinitions:
+          - AttributeName: connectionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: connectionId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
