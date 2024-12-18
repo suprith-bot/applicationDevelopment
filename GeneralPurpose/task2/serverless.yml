@@ -1,0 +1,62 @@
+service: task2
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+  
+  environment:
+    S3_BUCKET: my-upload-bucket-hvxyewhdfcgthd
+    MAX_FILE_SIZE: '10485760' # 10MB in bytes
+    ALLOWED_TYPES: 'image/jpeg,image/png,image/gif,application/pdf'
+  apiGateway:
+    binaryMediaTypes:
+      - "multipart/form-data"
+
+
+
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+            - "s3:GetObject"
+            - "s3:ListBucket"
+            - "s3:DeleteObject"
+            - "s3:GetSignedUrl"
+          
+          Resource: 
+            - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}"
+            - "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*"
+
+functions:
+  uploadFile:
+    handler: handler.upload
+    events:
+      - http:
+          path: upload
+          method: post
+          cors: true
+
+
+  generatePresignedUrl:
+    handler: handler.generatePresignedUrlHandler
+    events:
+      - http:
+          path: presigned-url
+          method: post
+          cors: true
+
+resources:
+  Resources:
+    UploadBucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        BucketName: my-upload-bucket-hvxyewhdfcgthd
+        AccessControl: Private
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ['*']
+              AllowedMethods: [PUT, POST, GET, HEAD, DELETE]
+              AllowedOrigins: ['*']
+              MaxAge: 3000
