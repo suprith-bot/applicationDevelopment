@@ -1,0 +1,130 @@
+service: apigateway-sqs-direct-integration
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sqs:SendMessage
+            - sqs:ReceiveMessage
+            - sqs:DeleteMessage
+            - sqs:GetQueueAttributes
+          Resource:
+            - !GetAtt MainQueue.Arn
+            - !GetAtt DeadLetterQueue.Arn
+
+functions:
+  processQueue:
+    handler: handler.main
+    events:
+      - sqs:
+          arn: !GetAtt MainQueue.Arn
+          batchSize: 5
+
+  handleDLQ:
+    handler: handler.dlq
+    events:
+      - sqs:
+          arn: !GetAtt DeadLetterQueue.Arn
+
+
+resources:
+  Resources:
+    MainQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: MainQueue
+        VisibilityTimeout: 30
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+          maxReceiveCount: 5
+    DeadLetterQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: DeadLetterQueue
+
+    ApiGatewayRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ApiGatewayRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: apigateway.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: ApiGatewaySQSPublishPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sqs:SendMessage
+                  Resource: !GetAtt MainQueue.Arn
+
+    MainQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref MainQueue
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: apigateway.amazonaws.com
+              Action: sqs:SendMessage
+              Resource: !GetAtt MainQueue.Arn
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: direct-api-sqs
+
+    ApiGatewayResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+        PathPart: send-message
+        RestApiId: !Ref ApiGatewayRestApi
+
+    ApiGatewayMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        AuthorizationType: NONE
+        HttpMethod: POST
+        ResourceId: !Ref ApiGatewayResource
+        RestApiId: !Ref ApiGatewayRestApi
+        Integration:
+          Type: AWS
+          IntegrationHttpMethod: POST
+          Uri: 
+            Fn::Sub: arn:aws:apigateway:${AWS::Region}:sqs:path/${AWS::AccountId}/MainQueue
+          Credentials: !GetAtt ApiGatewayRole.Arn
+          RequestParameters:
+            integration.request.header.Content-Type: "'application/x-www-form-urlencoded'"
+          RequestTemplates:
+            application/json: |
+              Action=SendMessage&MessageBody=$util.urlEncode($input.json('$'))
+          IntegrationResponses:
+            - StatusCode: 200
+              ResponseTemplates:
+                application/json: |
+                  {"message": "Message sent to SQS successfully"}
+        MethodResponses:
+          - StatusCode: 200
+
+    ApiGatewayDeployment:
+      Type: AWS::ApiGateway::Deployment
+      DependsOn:
+        - ApiGatewayMethod
+      Properties:
+        RestApiId: !Ref ApiGatewayRestApi
+        StageName: dev
