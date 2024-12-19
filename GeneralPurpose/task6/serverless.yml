@@ -1,0 +1,183 @@
+service: task6
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: dev
+  region: us-east-1
+  environment:
+    COGNITO_USER_POOL_ID: !Ref UserPool
+    COGNITO_CLIENT_ID: !Ref UserPoolClient
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sns:publish
+            - cognito-idp:AdminAddUserToGroup
+            - cognito-idp:AdminConfirmSignUp
+            - cognito-idp:AdminLinkProviderForUser
+            - cognito-idp:AdminInitiateAuth
+            - cognito-idp:AdminRespondToAuthChallenge
+            - cognito-idp:ListUsers
+            - cognito-idp:AdminGetUser
+            - cognito-idp:AdminCreateUser
+            - cognito-idp:AdminDeleteUser
+            - cognito-idp:AdminUpdateUserAttributes
+            - cognito-idp:AdminSetUserPassword
+          Resource: !GetAtt UserPool.Arn
+
+
+
+functions:
+  signUp:
+    handler: handler.signUp
+    events:
+      - http:
+          path: /auth/signup
+          method: post
+          cors: true
+
+  confirmSignUp:
+    handler: handler.confirmSignUp
+    events:
+      - http:
+          path: /auth/confirm
+          method: post
+          cors: true
+
+  signIn:
+    handler: handler.signIn
+    events:
+      - http:
+          path: /auth/signin
+          method: post
+          cors: true
+
+
+
+
+
+  hello:
+    handler: handler.hello
+    events:
+      - http:
+          path: /
+          method: get
+          cors: true
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: !Ref ApiGatewayAuthorizer
+
+resources:
+  Resources:
+    CognitoSMSRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - cognito-idp.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: CognitoSMSPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sns:Publish
+                  Resource: "*"
+    UserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-user-pool-${sls:stage}
+        AdminCreateUserConfig:
+          AllowAdminCreateUserOnly: false
+        AutoVerifiedAttributes:
+          - email
+          - phone_number
+        UsernameAttributes:
+          - email
+          - phone_number
+        
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 8
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+        Schema:
+          - Name: email
+            AttributeDataType: String
+            Mutable: true
+            Required: true
+          - Name: name
+            AttributeDataType: String
+            Mutable: true
+            Required: false
+          - Name: phone_number
+            AttributeDataType: String
+            Mutable: true
+            Required: false
+        EmailConfiguration:
+          EmailSendingAccount: COGNITO_DEFAULT
+        EmailVerificationMessage: "Hello, Your verification code is {####}"
+        EmailVerificationSubject: "Your verification code"
+        SmsConfiguration:
+          ExternalId: ${self:service}-${sls:stage}
+          SnsCallerArn: !GetAtt CognitoSMSRole.Arn
+        SmsVerificationMessage: "Your verification code is {####}"    
+    
+
+          
+
+    UserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: ${self:service}-client-${sls:stage}
+        UserPoolId: !Ref UserPool
+        GenerateSecret: false
+        SupportedIdentityProviders:
+          - COGNITO
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthFlows:
+            - code
+            - implicit
+        PreventUserExistenceErrors: ENABLED
+        AllowedOAuthScopes:
+            - email
+            - openid
+            - profile
+        CallbackURLs:
+            - https://example.com
+            
+        LogoutURLs:
+            - http://localhost:3000
+            - https://www.example.com
+        ExplicitAuthFlows:
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH 
+
+    ApiGatewayAuthorizer:
+      Type: AWS::ApiGateway::Authorizer
+      Properties:
+        Name: CognitoAuthorizer-task6
+        Type: COGNITO_USER_POOLS
+        IdentitySource: method.request.header.Authorization
+        RestApiId: !Ref ApiGatewayRestApi
+        ProviderARNs:
+          - !GetAtt UserPool.Arn
+   
+    UserPoolDomain:
+      Type: AWS::Cognito::UserPoolDomain
+      Properties:
+        Domain: ${self:service}-${sls:stage}-fhfhfuhif
+        UserPoolId: !Ref UserPool
