@@ -1,0 +1,44 @@
+service: s3-csv-processor
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+          Resource: "arn:aws:s3:::pdf-bucket-299-unique-name/*"
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:BatchWriteItem
+          Resource: !GetAtt UsersTable.Arn
+
+functions:
+  processCSV:
+    handler: handler.processCSV
+    events:
+      - s3:
+          bucket: pdf-bucket-299-unique-name
+          existing: false # Serverless creates the bucket
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .csv
+
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: DemoTable2
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
