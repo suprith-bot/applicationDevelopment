@@ -1,9 +1,0 @@
-node_modules
-.serverless
-src
-handler.js
-package.json
-serverless.yml
-package-lock.json
-undefined
-
