@@ -1,0 +1,130 @@
+service: lambda-rds-vpc
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: us-east-1
+
+  vpc:
+    securityGroupIds:
+      - sg-07882145b9dcec727
+    subnetIds:
+      - subnet-033daf712002b17a8
+
+
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "ec2:CreateNetworkInterface"
+            - "ec2:DescribeNetworkInterfaces"
+            - "ec2:DeleteNetworkInterface"
+            - "ec2:AssignPrivateIpAddresses"
+            - "ec2:UnassignPrivateIpAddresses"
+          Resource: "*"
+        - Effect: Allow
+          Action:
+            - ssm:GetParameter
+          Resource: 
+            - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/database_password
+  # iam:
+  #   role:
+  #     statements:
+  #       - Effect: "Allow"
+  #         Action:
+  #           - "rds-db:connect"
+  #         Resource: "*"
+  #       - Effect: "Allow"
+  #         Action:
+  #           - "rds:DescribeDBInstances"
+  #         Resource: "*"
+
+functions:
+  rdsLambda:
+    handler: handler.handler
+    layers:
+      - arn:aws:lambda:us-east-1:445567078094:layer:rds:2
+    events:
+      - http:
+          path: connect
+          method: get
+          cors: true
+resources:
+  Resources:
+    SSMVPCEndpoint:
+      Type: AWS::EC2::VPCEndpoint
+      Properties:
+        VpcId: vpc-08d55562c977a053c
+        ServiceName: !Sub com.amazonaws.${AWS::Region}.ssm
+        VpcEndpointType: Interface
+        SubnetIds:
+          - subnet-033daf712002b17a8  # Your subnet ID
+        SecurityGroupIds:
+          - sg-0d4e65ffdec1f837c      # Your security group ID
+        PrivateDnsEnabled: true
+
+
+# resources:
+#   Resources:
+#     # Create Lambda Security Group First
+#     LambdaSecurityGroup:
+#       Type: AWS::EC2::SecurityGroup
+#       Properties:
+#         GroupDescription: Lambda Security Group
+#         VpcId: vpc-08d55562c977a053c
+#         SecurityGroupIngress: []
+#         SecurityGroupEgress:
+#           - IpProtocol: -1
+#             FromPort: -1
+#             ToPort: -1
+#             CidrIp: 0.0.0.0/0
+
+#     # Create RDS Security Group
+#     RDSSecurityGroup:
+#       Type: AWS::EC2::SecurityGroup
+#       DependsOn: LambdaSecurityGroup
+#       Properties:
+#         GroupDescription: RDS Security Group
+#         VpcId: vpc-08d55562c977a053c
+#         SecurityGroupIngress:
+#           - IpProtocol: tcp
+#             FromPort: 3306
+#             ToPort: 3306
+#             SourceSecurityGroupId: !Ref LambdaSecurityGroup
+#         SecurityGroupEgress:
+#           - IpProtocol: -1
+#             FromPort: -1
+#             ToPort: -1
+#             CidrIp: 0.0.0.0/0
+
+#     DBSubnetGroup:
+#       Type: AWS::RDS::DBSubnetGroup
+#       Properties:
+#         DBSubnetGroupDescription: Subnet group for RDS
+#         SubnetIds:
+#           - subnet-003c92811f0cb25ca
+#           - subnet-083842f3628d57f34
+
+#     RDSInstance:
+#       Type: AWS::RDS::DBInstance
+#       DependsOn: 
+#         - RDSSecurityGroup
+#         - DBSubnetGroup
+#       Properties:
+#         DBInstanceIdentifier: mydb-instance
+#         AllocatedStorage: 20
+#         DBInstanceClass: db.t3.micro
+#         Engine: mysql
+#         MasterUsername: admin
+#         MasterUserPassword: Abcd1234
+#         VPCSecurityGroups:
+#           - !Ref RDSSecurityGroup
+#         DBSubnetGroupName: !Ref DBSubnetGroup
+#         PubliclyAccessible: false
+#         StorageEncrypted: false
+#         BackupRetentionPeriod: 1
+#         MultiAZ: false
+#         DeletionProtection: false
+#         MonitoringInterval: 0
+#         EnablePerformanceInsights: false
