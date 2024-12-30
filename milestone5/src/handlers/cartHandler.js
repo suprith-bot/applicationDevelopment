@@ -14,8 +14,8 @@ module.exports.addToCart=async(event)=>{
        console.log(err);
         
         return{
-            statusCode:Error.statusCode || 500,
-            body:JSON.stringify({ message: 'Error adding cart' })
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error adding cart:'+err.message  })
             
     }
 }}
@@ -35,8 +35,8 @@ module.exports.deleteFromCart=async(event)=>{
        console.log(err);
 
         return{
-            statusCode:Error.statusCode || 500,
-            body:JSON.stringify({ message: 'Error deleting cart' })
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error deleting cart:'+err.message  })
 
     }
 }}

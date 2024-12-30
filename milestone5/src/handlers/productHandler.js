@@ -73,6 +73,7 @@ module.exports.searchProducts = async (event) => {
       statusCode: 500,
       body: JSON.stringify({ message: 'Failed to search products' }),
     };
+    
   }
 };
 

@@ -11,9 +11,10 @@ module.exports.checkout=async(event)=>{
     catch(err){
         console.log(err);
         return{
-            statusCode:Error.statusCode || 500,
-            body:JSON.stringify({ message: 'Error checking out' })
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error checking out:'+err.message  })
         }
+  
     }
 }
 module.exports.orderTrack=async(event)=>{
@@ -28,8 +29,8 @@ module.exports.orderTrack=async(event)=>{
     catch(err){
         console.log(err);
         return{
-            statusCode:Error.statusCode || 500,
-            body:JSON.stringify({ message: 'Error tracking order' })
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error tracking order:'+err.message  })
         }
     }
 }
@@ -48,8 +49,8 @@ module.exports.orderHistory=async(event)=>{
     catch(err){
         console.log(err);
         return{
-            statusCode:Error.statusCode || 500,
-            body:JSON.stringify({ message: 'Error fetching order history' })
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error fetching order history:'+err.message  })
         }
     }
 }

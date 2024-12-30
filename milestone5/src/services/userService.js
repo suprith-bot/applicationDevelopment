@@ -5,12 +5,33 @@ const TABLE_NAME = process.env.DYNAMODB_TABLE;
 
 module.exports.createUser=async(userData)=>{
     const{name,email,password,shippingAddress}=userData;
-    if(!name || !email ){
-        throw { statusCode: 400, message: 'Name and Email are required' };
-    }
-    if(!validation.isValidEmail(email)){
-        throw { statusCode: 400, message: 'Invalid Email' };
-    }
+ // Validate required fields
+ if (!name || !email || !password) {
+    throw { statusCode: 400, message: 'Name, Email, and Password are required' };
+}
+
+// Validate each field
+if (!validation.isValidName(name)) {
+    throw { statusCode: 400, message: 'Name must be between 2 and 50 characters' };
+}
+
+if (!validation.isValidEmail(email)) {
+    throw { statusCode: 400, message: 'Invalid Email format' };
+}
+
+if (!validation.isValidPassword(password)) {
+    throw { 
+        statusCode: 400, 
+        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number' 
+    };
+}
+
+if (shippingAddress && !validation.isValidAddress(shippingAddress)) {
+    throw { 
+        statusCode: 400, 
+        message: 'Shipping address must include street, city, state, and zipCode' 
+    };
+}
     
     const userId = `${uuidv4()}`;
    
@@ -41,6 +62,7 @@ module.exports.getUser=async(userId)=>{
 
 module.exports.updateUser=async(userData)=>{
     const {UserId,Name,Email,Address} = userData;
+    
     const key = { UserId: UserId };
     console.log(key);
     const user=await dynamoHelper.getItem(TABLE_NAME, key);

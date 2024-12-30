@@ -13,12 +13,12 @@ module.exports.createUser=async(event)=>{
     }}
     catch(err){
        console.log(err);
+       return{
+        statusCode:err.statusCode || 500,
+        body:JSON.stringify({ message: 'Error creating user:'+err.message })
         
-        return{
-            statusCode:Error.statusCode || 500,
-            body:JSON.stringify({ message: 'Error creating user' })
-            
-    }
+}
+     
 }}
 module.exports.getUser=async(event)=>{
     try{const userId=event.pathParameters.userId;
@@ -31,14 +31,19 @@ module.exports.getUser=async(event)=>{
     }
     catch(err){
        
-        return err;
+       
+        return{
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error getting user:'+err.message })
+            
+    }
     }
 }
 module.exports.updateUser=async(event)=>{
     try{
         
-        // amazonq-ignore-next-line
-        const body=JSON.parse(event.body);//have to validate the body before parsing
+      
+        const body=JSON.parse(event.body);
         const response=await userService.updateUser(body);
         
         return{
@@ -47,6 +52,10 @@ module.exports.updateUser=async(event)=>{
         }
     }
     catch(err){
-        return err;
+        return{
+            statusCode:err.statusCode || 500,
+            body:JSON.stringify({ message: 'Error updating user:'+err.message })
+            
+    }
     }
 }

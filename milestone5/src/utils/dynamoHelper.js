@@ -75,11 +75,12 @@ module.exports.queryItems=async(tableName, expressionAttributeValues)=>{
     console.log(params);
     try{
         const {Items}=await client.send(new QueryCommand(params));
-       
+       if(Items.length===0){
+        return null
+       }
         return Items?Items.map(item=>unmarshall(item)):null;
     }
     catch(err){
-        throw { statusCode: 500, message: 'Failed to query data from DynamoDB' ,error:err.message
-        };
+        throw { statusCode: 500, message: 'Failed to query data from DynamoDB' };
     }
 }
