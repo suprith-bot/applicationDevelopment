@@ -104,17 +104,45 @@
                     "UserId":{"type":"string"},
                     "Name":{"type":"string"},
                     "Email":{"type":"string"},
-                    "Address":{"type":"string"}
-                },"example":{
-                    "UserId":"jhsdgdf6wi28wter4",
-                    "Name":"ahmed",
-                    "Email":"ahmed@gmail.com",
-                    "Address":"cairo"
+                   
+            "address": {
+                "type": "object",
+                "properties": {
+                  "street": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "zipCode": {
+                    "type": "string"
+                  }
+                },
+                "required": ["street", "city", "state", "zipCode"],
+                "example": {
+                  "street": "123 Main St",
+                  "city": "Los Angeles",
+                  "state": "CA",
+                  "zipCode": "90001"
                 }
-            }
-            
-
-    }}}
+              }},
+              "required": ["name", "email", "password", "address"],
+              "example": {
+                "UserId":"hfr74y745f8g7g4f",
+                "Name": "Ahmed",
+                "Email": "ahmed@gmail.com",
+              
+                "Address": {
+                  "street": "123 Main St",
+                  "city": "Los Angeles",
+                  "state": "CA",
+                  "zipCode": "90001"
+                }
+              }
+            }}}}
 ,"responses":{
     "204":{
         "description":"successfully updated"
@@ -380,7 +408,30 @@
                 "type":"object",
                 "properties":{
                     "UserID":{"type":"string"},
-                    "ShippingAddress":{"type":"string"},
+                    "shippingAddress": {
+                        "type": "object",
+                        "properties": {
+                          "street": {
+                            "type": "string"
+                          },
+                          "city": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "type": "string"
+                          },
+                          "zipCode": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["street", "city", "state", "zipCode"],
+                        "example": {
+                          "street": "123 Main St",
+                          "city": "Los Angeles",
+                          "state": "CA",
+                          "zipCode": "90001"
+                        }
+                      },
                     "PaymentMethod":{"type":"string"},
                     "CartItems":{
                         "type": "array",
@@ -398,17 +449,21 @@
                 }}},
                 "required":["UserID","CartItems"]
                 ,"example":{
-                    "UserID":"hfr74y745f8g7g4f",
-                    "shippingAddress":"cairo",
-                    "PaymentMethod":"cash",
-                    "CartItems":[
-                        {
-                            "productId":"hfhut4t4tt46t4k86at4",
-                            "quantity":1
-                        }
+                    "UserID": "d9051142-6005-44d1-925b-5b0779482d13",
+                    "shippingAddress": {
+                      "street": "123 Main St",
+                      "city": "Los Angeles",
+                      "state": "CA",
+                      "zipCode": "90001"
+                    },
+                    "PaymentMethod": "cash",
+                    "CartItems": [
+                      {
+                        "ProductID": "E001",
+                        "Quantity": 1
+                      }
                     ]
-
-                }
+                  }
             }
             
 
@@ -762,18 +817,45 @@
             "type": "string",
             "format": "password"
           },
-          "shippingAddress": {
-            "type": "string"
-          }
-        },
-        "required": ["name", "email", "password", "shippingAddress"],
-        "example": {
-          "name": "ahmed",
-          "email": "ahmed@gmail.com",
-          "password": "123456",
-          "shippingAddress": "cairo"
-        }
-      }
+          
+            "address": {
+              "type": "object",
+              "properties": {
+                "street": {
+                  "type": "string"
+                },
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                },
+                "zipCode": {
+                  "type": "string"
+                }
+              },
+              "required": ["street", "city", "state", "zipCode"],
+              "example": {
+                "street": "123 Main St",
+                "city": "Los Angeles",
+                "state": "CA",
+                "zipCode": "90001"
+              }
+            }},
+            "required": ["name", "email", "password", "address"],
+            "example": {
+              "name": "Ahmed",
+              "email": "ahmed@gmail.com",
+              "password": "123456",
+              "shippingAddress": {
+                "street": "123 Main St",
+                "city": "Los Angeles",
+                "state": "CA",
+                "zipCode": "90001"
+              }
+            }
+          
+      
     }
   }
-}
+}}
