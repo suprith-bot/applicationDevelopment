@@ -1,48 +1,17 @@
 const dynamoHelper=require('../utils/dynamoHelper');
 const {v4:uuidv4}=require('uuid');
-const validation= require('../utils/validation');
 const TABLE_NAME = process.env.DYNAMODB_TABLE;   
 
-module.exports.createUser=async(userData)=>{
-    const{name,email,password,shippingAddress}=userData;
- // Validate required fields
- if (!name || !email || !password) {
-    throw { statusCode: 400, message: 'Name, Email, and Password are required' };
-}
-
-// Validate each field
-if (!validation.isValidName(name)) {
-    throw { statusCode: 400, message: 'Name must be between 2 and 50 characters' };
-}
-
-if (!validation.isValidEmail(email)) {
-    throw { statusCode: 400, message: 'Invalid Email format' };
-}
-
-if (!validation.isValidPassword(password)) {
-    throw { 
-        statusCode: 400, 
-        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number' 
-    };
-}
-
-if (shippingAddress && !validation.isValidAddress(shippingAddress)) {
-    throw { 
-        statusCode: 400, 
-        message: 'Shipping address must include street, city, state, and zipCode' 
-    };
-}
-    
+module.exports.createUser=async(value)=>{
     const userId = `${uuidv4()}`;
    
     const newUser = {
         UserId: userId,
-        Name: name,
-        Email: email,
-        Password: password,
-        Address: shippingAddress
-        
-      };
+        Name: value.name,
+        Email: value.email,
+        Password: value.password,
+        Address: value.shippingAddress
+    };
       console.log(TABLE_NAME);
       await dynamoHelper.putItem(TABLE_NAME, newUser);
 
@@ -60,10 +29,10 @@ module.exports.getUser=async(userId)=>{
 
 }
 
-module.exports.updateUser=async(userData)=>{
-    const {UserId,Name,Email,Address} = userData;
+module.exports.updateUser=async(value)=>{
+   
     
-    const key = { UserId: UserId };
+    const key = { UserId: value.UserId };
     console.log(key);
     const user=await dynamoHelper.getItem(TABLE_NAME, key);
     if(!user){
@@ -74,24 +43,21 @@ module.exports.updateUser=async(userData)=>{
     const expressionAttributeNames = {};
     
     // Build update expression dynamically based on provided fields
-    if (userData.Name) {
+    if (value.Name) {
         updateExpression += ' #n = :name,';
-        expressionAttributeValues[':name'] = userData.Name;
+        expressionAttributeValues[':name'] = value.Name;
         expressionAttributeNames['#n'] = 'Name';
     }
     
-    if (userData.Email) {
-        if (!validation.isValidEmail(userData.Email)) {
-            throw { statusCode: 400, message: 'Invalid Email' };
-        }
+    if (value.Email) {
         updateExpression += ' #e = :email,';
-        expressionAttributeValues[':email'] = userData.Email;
+        expressionAttributeValues[':email'] = value.Email;
         expressionAttributeNames['#e'] = 'Email';
     }
     
-    if (userData.Address) {
+    if (value.Address) {
         updateExpression += ' #a = :address,';
-        expressionAttributeValues[':address'] = userData.Address;
+        expressionAttributeValues[':address'] = value.Address;
         expressionAttributeNames['#a'] = 'Address';
     }
     // Remove trailing comma from updateExpression
@@ -103,7 +69,7 @@ module.exports.updateUser=async(userData)=>{
     if (Object.keys(expressionAttributeValues).length === 0) {
         throw { statusCode: 400, message: 'No fields to update' };
     }
-    const updatedUser = { ...user, ...userData };
+    const updatedUser = { ...user, ...value };
     await dynamoHelper.updateItem(TABLE_NAME, key, updateExpression,expressionAttributeValues,expressionAttributeNames);
     return updatedUser;
 

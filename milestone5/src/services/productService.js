@@ -1,75 +1,70 @@
 const AWS = require('aws-sdk');
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-   
-module.exports.searchProducts=async(query)=>{try{
-    const {
-        Keywords,
-        Category,
-        Subcategory,
-        MinPrice,
-        MaxPrice
-    } =query;
-    if (!Keywords) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ message: "Keywords are required." })
-        };
-    }
+const { Client } = require('@opensearch-project/opensearch');
+const ssm = new AWS.SSM();
 
-    // Construct the query
-    let params = {
-        TableName: process.env.PRODUCTS_TABLE,
-        FilterExpression: "contains(#name, :keywords)",
-        ExpressionAttributeNames: {
-            "#name": "Name",
+function getSSMParameter(name) {
+    const response =ssm.getParameter({
+      Name: name,
+      WithDecryption: true,
+    }).promise();
+    return response.Parameter.Value;
+  }
+  const username = getSSMParameter('username');
+  const password = getSSMParameter('password');
+    // Create OpenSearch client
+  const client = new Client({ node: `https://${process.env.OPENSEARCH_ENDPOINT}`,
+      auth: { username, password }});  
+module.exports.searchProducts=async(validatedParams)=>{
+  
+    const { Keywords, Category, Subcategory, MinPrice, MaxPrice } = validatedParams;
+    const searchQuery = {
+        bool: {
+          must: [],
+          filter: [],
         },
-        ExpressionAttributeValues: {
-            ":keywords": Keywords,
-        }
-    };
-
-    // Add optional filters
-    if (Category) {
-        params.FilterExpression += " AND #category = :category";
-        params.ExpressionAttributeNames["#category"] = "Category";
-        params.ExpressionAttributeValues[":category"] = Category;
-    }
-
-    if (Subcategory) {
-        params.FilterExpression += " AND #subcategory = :subcategory";
-        params.ExpressionAttributeNames["#subcategory"] = "Subcategory";
-        params.ExpressionAttributeValues[":subcategory"] = Subcategory;
-    }
-
-    if (MinPrice) {
-        params.FilterExpression += " AND Price >= :minPrice";
-        params.ExpressionAttributeValues[":minPrice"] = parseFloat(MinPrice);
-    }
-
-    if (MaxPrice) {
-        params.FilterExpression += " AND Price <= :maxPrice";
-        params.ExpressionAttributeValues[":maxPrice"] = parseFloat(MaxPrice);
-    }
-console.log(params);
-    const result = await dynamoDb.query(params).promise();
-
-        // Optional: Filter on Keywords in application logic (DynamoDB can't do full-text search)
-        const filteredItems = Keywords
-            ? result.Items.filter((item) =>
-                  item.Name.toLowerCase().includes(Keywords.toLowerCase())
-              )
-            : result.Items;
-
+      };
+    
+      if (Keywords) {
+        searchQuery.bool.must.push({
+          multi_match: {
+            query: Keywords,
+            fields: ['name^3', 'description', 'tags'],
+          },
+        });
+      }
+    
+      if (Category) {
+        searchQuery.bool.filter.push({ term: { category: Category } });
+      }
+    
+      if (Subcategory) {
+        searchQuery.bool.filter.push({ term: { subcategory: Subcategory } });
+      }
+    
+      if (MinPrice || MaxPrice) {
+        const range = {};
+        if (MinPrice) range.gte = parseFloat(MinPrice);
+        if (MaxPrice) range.lte = parseFloat(MaxPrice);
+        searchQuery.bool.filter.push({ range: { price: range } });
+      }
+    
+      try {
+        console.log(searchQuery)
+        const result = await client.search({
+          index: 'products',
+          body: { query: searchQuery },
+        });
+    
         return {
-            statusCode: 200,
-            body: JSON.stringify({ products: filteredItems })
+          statusCode: 200,
+          body: JSON.stringify(result.body.hits.hits.map((hit) => hit._source)),
         };
-    } catch (error) {
-        console.error("Error:", error);
+      } catch (error) {
+        console.error(`Error searching products: ${error.message}`);
         return {
-            statusCode: 500,
-            body: JSON.stringify({ message: "An error occurred." })
+          statusCode: 500,
+          body: JSON.stringify({ message: 'Failed to search products' }),
         };
-    }
-
+        
+      }
 }

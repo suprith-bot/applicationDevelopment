@@ -1,28 +1,18 @@
 const { Client } = require('@opensearch-project/opensearch');
 const AWS = require('aws-sdk');
-const dynamodb = AWS.DynamoDB.Converter;
+const username =process.env.USERNAME_SSM
+const password =process.env.PASSWORD_SSM
+
+// Create OpenSearch client
+const client = new Client({ node: `https://${process.env.OPENSEARCH_ENDPOINT}`,
+  auth: { username, password }});
 
 
-const ssm = new AWS.SSM();
 
-async function getSSMParameter(name) {
-  const response = await ssm.getParameter({
-    Name: name,
-    WithDecryption: true,
-  }).promise();
-  return response.Parameter.Value;
-}
 
-// OpenSearch client
 
 module.exports.searchProducts = async (event) => {
-  const username =await getSSMParameter('username');
-  const password =await getSSMParameter('password');
- 
-  // Create OpenSearch client
-  const client = new Client({ node: `https://${process.env.OPENSEARCH_ENDPOINT}`,
-    auth: { username, password }});
- 
+
   const { Keywords, Category, Subcategory, MinPrice, MaxPrice } = event.queryStringParameters || {};
 
   const searchQuery = {
@@ -36,7 +26,7 @@ module.exports.searchProducts = async (event) => {
     searchQuery.bool.must.push({
       multi_match: {
         query: Keywords,
-        fields: ['name^3', 'description', 'tags'],
+        fields: ['name^3', 'keywords', 'tags'],
       },
     });
   }

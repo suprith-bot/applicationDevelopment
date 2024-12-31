@@ -1,20 +1,12 @@
 const dynamoHelper=require('../utils/dynamoHelper');
 const TABLE_NAME=process.env.ORDER_TABLE; 
 const {v4:uuidv4}=require('uuid');
-const validation=require('../utils/validation');
 
-module.exports.checkout=async(orderData)=>{
-    const { UserID, shippingAddress, PaymentMethod, CartItems }=orderData;
-    if(!UserID || !shippingAddress || !PaymentMethod || !CartItems){
-        throw { statusCode: 400, message: 'UserID, ShippingAddress, PaymentMethod and CartItems are required' };
-    }
-   
-   if (shippingAddress && !validation.isValidAddress(shippingAddress)) {
-       throw { 
-           statusCode: 400, 
-           message: 'Shipping address must include street, city, state, and zipCode' 
-       };
-   }
+
+module.exports.checkout=async(validatedData)=>{
+    
+    const { UserID, shippingAddress, PaymentMethod, CartItems } = validatedData;
+    
     let totalAmount=0;
     for(const item of CartItems){
         const key={ProductID:item.ProductID};

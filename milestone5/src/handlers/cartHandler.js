@@ -1,7 +1,9 @@
 const cartService=require('../services/cartService');
+const Joi=require('joi')
 module.exports.addToCart=async(event)=>{
     try{
         const body=JSON.parse(event.body);
+
         
         const response=await cartService.createCart(body);
 
