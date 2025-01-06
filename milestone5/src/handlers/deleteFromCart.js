@@ -1,26 +1,8 @@
 const cartService=require('../services/cartService');
 const Joi=require('joi')
-module.exports.addToCart=async(event)=>{
-    try{
-        const body=JSON.parse(event.body);
 
-        
-        const response=await cartService.createCart(body);
-
-    
-    return{
-        statusCode:201,
-        body:JSON.stringify({ message: 'cart added successfully' })
-    }}
-    catch(err){
-       console.log(err);
-        
-        return{
-            statusCode:err.statusCode || 500,
-            body:JSON.stringify({ message: 'Error adding cart:'+err.message  })
-            
-    }
-}}
+/* This code snippet is defining an asynchronous function `deleteFromCart` that is intended to handle a
+request to delete an item from a user's cart. Here's a breakdown of what the function does: */
 module.exports.deleteFromCart=async(event)=>{
     try{
         const userId=await event.pathParameters.userId;

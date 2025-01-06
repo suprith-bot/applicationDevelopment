@@ -16,6 +16,8 @@ function getSSMParameter(name) {
       auth: { username, password }});  
 module.exports.searchProducts=async(validatedParams)=>{
   
+ /* This code snippet is constructing a search query based on the parameters provided in
+ `validatedParams`. */
     const { Keywords, Category, Subcategory, MinPrice, MaxPrice } = validatedParams;
     const searchQuery = {
         bool: {
@@ -48,6 +50,11 @@ module.exports.searchProducts=async(validatedParams)=>{
         searchQuery.bool.filter.push({ range: { price: range } });
       }
     
+    /* This code snippet is using the OpenSearch client to perform a search operation on an index named
+    'products'. It constructs a search query based on the parameters provided in `validatedParams`
+    and then logs the constructed search query to the console. The search query is then passed to
+    the `client.search` method to execute the search operation. The result of the search operation
+    is stored in the `result` variable using `await` to wait for the operation to complete. */
       try {
         console.log(searchQuery)
         const result = await client.search({
@@ -55,6 +62,8 @@ module.exports.searchProducts=async(validatedParams)=>{
           body: { query: searchQuery },
         });
     
+      /* This code snippet is constructing a response object that will be returned from the
+      `searchProducts` function.  */
         return {
           statusCode: 200,
           body: JSON.stringify(result.body.hits.hits.map((hit) => hit._source)),

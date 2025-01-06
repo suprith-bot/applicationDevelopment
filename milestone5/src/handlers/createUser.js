@@ -21,15 +21,7 @@ const createUserSchema = Joi.object({
         }),
     shippingAddress: addressSchema.required()
 });
-
-const updateUserSchema = Joi.object({
-    UserId: Joi.string().required(),
-    Name: Joi.string().min(2).max(50),
-    Email: Joi.string().email(),
-    Address: addressSchema
-}).min(2); // Requiring at least one field to update besides UserId
-
-
+//to create user from fetching details like name ,email,address
 module.exports.createUser=async(event)=>{
     try{
         
@@ -61,47 +53,3 @@ module.exports.createUser=async(event)=>{
 }
      
 }}
-module.exports.getUser=async(event)=>{
-    try{const userId=event.pathParameters.userId;
-         
-        const response=await userService.getUser(userId);
-        return{
-            statusCode:200,
-            body:JSON.stringify(response)
-        }
-    }
-    catch(err){
-       
-       
-        return{
-            statusCode:err.statusCode || 500,
-            body:JSON.stringify({ message: 'Error getting user:'+err.message })
-            
-    }
-    }
-}
-module.exports.updateUser=async(event)=>{
-    try{
-        const body=JSON.parse(event.body);
-        const { error, value } = updateUserSchema.validate(body, { abortEarly: false });
-        if (error) {
-            return {
-                statusCode: 400,
-                body: error.details.map(detail => detail.message).join(', ')
-            };
-        }
-        const response=await userService.updateUser(value);
-        
-        return{
-            statusCode:204
-          
-        }
-    }
-    catch(err){
-        return{
-            statusCode:err.statusCode || 500,
-            body:JSON.stringify({ message: 'Error updating user:'+err.message })
-            
-    }
-    }
-}

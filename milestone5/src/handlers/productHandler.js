@@ -9,7 +9,7 @@ const client = new Client({ node: `https://${process.env.OPENSEARCH_ENDPOINT}`,
 
 
 
-
+//to search the products 
 
 module.exports.searchProducts = async (event) => {
 
