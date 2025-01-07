@@ -14,8 +14,8 @@ provider:
     ORDER_TABLE: OrderTable-${sls:stage}
     OPENSEARCH_ENDPOINT: 
       Fn::GetAtt: [OpenSearchDomain, DomainEndpoint]
-    PASSWORD_SSM: password
-    USERNAME_SSM: username
+    PASSWORD_SSM:  ${ssm:password}
+    USERNAME_SSM:  ${ssm:username}
     
     
 
@@ -31,6 +31,8 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
             - dynamodb:Scan
+            - dynamodb:BatchWriteItem
+            - dynamodb:BatchGetItem
             
           Resource: 
             - arn:aws:dynamodb:us-east-1:*:table/ProductsTable-${sls:stage}
@@ -61,28 +63,28 @@ provider:
 
 functions:
   createUser:
-    handler: src/handlers/userHandler.createUser
+    handler: src/handlers/createUser.createUser
     events:
       - http:
           path: /api/register
           method: post
           cors: true
   getUser:
-    handler: src/handlers/userHandler.getUser
+    handler: src/handlers/getUser.getUser
     events:
       - http:
           path: /api/profile/{userId}
           method: get
           cors: true
   updateUser:
-    handler: src/handlers/userHandler.updateUser
+    handler: src/handlers/updateUser.updateUser
     events:
       - http:
           path: /api/profile
           method: put
           cors: true
   addToCart:
-    handler: src/handlers/cartHandler.addToCart
+    handler: src/handlers/addToCart.addToCart
     events:
       - http:
           path: /api/cart
@@ -90,28 +92,28 @@ functions:
           cors: true
 
   deleteFromCart:
-    handler: src/handlers/cartHandler.deleteFromCart
+    handler: src/handlers/deleteFromCart.deleteFromCart
     events:
       - http:
           path: /api/cart/{userId}/products/{productId}
           method: delete
           cors: true
   checkoutApi:
-    handler: src/handlers/checkoutHandler.checkout
+    handler: src/handlers/checkout.checkout
     events:
       - http:
           path: /api/checkout
           method: post
           cors: true
   orderTrack:
-    handler: src/handlers/checkoutHandler.orderTrack
+    handler: src/handlers/orderTrack.orderTrack
     events:
       - http:
           path: /api/orders/{orderId}/status
           method: get
           cors: true
   orderHistory:
-    handler: src/handlers/checkoutHandler.orderHistory
+    handler: src/handlers/orderHistory.orderHistory
     events:
       - http:
           path: /api/orders
@@ -207,21 +209,17 @@ resources:
       Properties:
         TableName: OrderTable-${sls:stage}
         AttributeDefinitions:
-          - AttributeName: OrderId
+          - AttributeName: PK
             AttributeType: S
-          - AttributeName: UserId
+          - AttributeName: SK
             AttributeType: S
         KeySchema:
-          - AttributeName: OrderId
+          - AttributeName: PK
             KeyType: HASH
-        GlobalSecondaryIndexes:
-          - IndexName: UserIDIndex
-            KeySchema:
-              - AttributeName: UserId
-                KeyType: HASH
-            Projection:
-              ProjectionType: ALL
+          - AttributeName: SK
+            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
+
 
     CartTable:
       Type: AWS::DynamoDB::Table
